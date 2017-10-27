@@ -1,6 +1,5 @@
 package com.rawad.gpstracker;
 
-import android.content.Intent;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
 
@@ -8,7 +7,10 @@ import android.service.quicksettings.TileService;
  * Created by Rawad on 23-Oct-17.
  */
 
-public class TileServ extends TileService {
+public class SendLocationTile extends TileService {
+
+    LocationAlarmSender alarm = new LocationAlarmSender();
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -43,10 +45,12 @@ public class TileServ extends TileService {
         super.onClick();
         Tile tile = getQsTile();
         if (tile.getState() == Tile.STATE_INACTIVE) {
-            startService(new Intent(this, MyService.class));
+            alarm.setAlarm(this);
+            //startService(new Intent(this, SendLocationSms.class));
             getQsTile().setState(Tile.STATE_ACTIVE);
         } else {
-            stopService(new Intent(this, MyService.class));
+            alarm.cancelAlarm(this);
+            //stopService(new Intent(this, SendLocationSms.class));
             getQsTile().setState(Tile.STATE_INACTIVE);
         }
         tile.updateTile();

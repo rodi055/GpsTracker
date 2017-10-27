@@ -10,9 +10,8 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.SmsManager;
 import android.util.Log;
-import android.widget.CompoundButton;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,31 +22,32 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 public class MainActivity extends AppCompatActivity implements LocationListener,
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, CompoundButton.OnCheckedChangeListener {
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    public static final String DESTINATION_ADDRESS = "0000000000";
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
-    private Switch switchButton;
     private TextView mLatitudeText;
     private TextView mLongitudeText;
     private LocationManager manager;
     private LocationRequest mLocationRequest;
-    private double latitude = 0;
-    private double longitude = 0;
+    private double latitude;
+    private double longitude;
     private AlertDialog pDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        switchButton = (Switch) findViewById(R.id.switchButton);
+
         mLatitudeText = (TextView) findViewById(R.id.LatitudeText);
         mLongitudeText = (TextView) findViewById(R.id.LongitudeText);
         pDialog = new AlertDialog.Builder(MainActivity.this).create();
+        latitude = 0;
+        longitude = 0;
         Context mContext = this;
-        switchButton.setChecked(false);
-        switchButton.setOnCheckedChangeListener(this);
+
         manager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
         checkPermission();
         createLocationRequest();
@@ -104,8 +104,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
     @Override
     public void onConnected(Bundle connectionHint) {
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                mGoogleApiClient);
+
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocation == null) {
             startLocationUpdates();
         } else {
@@ -121,9 +121,21 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                     mLatitudeText.setText(String.valueOf(latitude));
                     mLongitudeText.setText(String.valueOf(longitude));
                     Toast.makeText(this, latitude + " " + longitude, Toast.LENGTH_LONG).show();
+                    sendLocationViaSms();
                 }
             }
         }
+    }
+
+    private void sendLocationViaSms() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, 1);
+        SmsManager smsManager = SmsManager.getDefault();
+        StringBuffer smsBody = new StringBuffer();
+        smsBody.append("http://maps.google.com?q=");
+        smsBody.append(mLastLocation.getLatitude());
+        smsBody.append(",");
+        smsBody.append(mLastLocation.getLongitude());
+        smsManager.sendTextMessage(DESTINATION_ADDRESS, null, smsBody.toString(), null, null);
     }
 
     @Override
@@ -133,19 +145,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-    }
-
-    @Override
-    public void onCheckedChanged(CompoundButton compoundButton, boolean bChecked) {
-        //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, 1);
-        if (switchButton.isChecked()) {
-            mGoogleApiClient.connect();
-//            SmsManager smsManager = SmsManager.getDefault();
-//            smsManager.sendTextMessage("00000", null, "sms message", null, null);
-
-        } else {
-            mGoogleApiClient.disconnect();
-        }
     }
 
     @Override
