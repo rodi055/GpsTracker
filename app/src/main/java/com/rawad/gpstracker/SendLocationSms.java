@@ -1,25 +1,43 @@
 package com.rawad.gpstracker;
 
-import android.app.Service;
+import android.Manifest;
+import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
-import android.os.IBinder;
+import android.support.annotation.Nullable;
+import android.telephony.SmsManager;
+import android.util.Log;
+import android.widget.Toast;
 
-public class SendLocationSms extends Service {
-    LocationAlarmSender alarm = new LocationAlarmSender();
+import com.intentfilter.androidpermissions.PermissionManager;
 
-    public void onCreate() {
-        super.onCreate();
+import static java.util.Collections.singleton;
+
+public class SendLocationSms extends IntentService {
+
+    private static final String TAG = SendLocationSms.class.getSimpleName();
+
+    public SendLocationSms() {
+        super("SendLocationSms");
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        alarm.setAlarm(this);
-        return START_STICKY;
-    }
+    protected void onHandleIntent(@Nullable Intent intent) {
+        Log.d(TAG, "onHandleIntent: %%%%%%%%");
+        Context context = getApplicationContext();
+        PermissionManager permissionManager = PermissionManager.getInstance(context);
+        permissionManager.checkPermissions(singleton(Manifest.permission.SEND_SMS), new PermissionManager.PermissionRequestListener() {
+            @Override
+            public void onPermissionGranted() {
+                SmsManager smsManager = SmsManager.getDefault();
+                smsManager.sendTextMessage("123456", null, "sdfsdfsdfsd", null, null);
+            }
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
+            @Override
+            public void onPermissionDenied() {
+                Toast.makeText(getApplicationContext(), "Permissions Denied", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 }
