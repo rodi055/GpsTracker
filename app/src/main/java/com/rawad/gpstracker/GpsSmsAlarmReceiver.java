@@ -15,7 +15,7 @@ public class GpsSmsAlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Intent i = new Intent(context, SendLocationSms.class);
-        i.putExtra("phoneNumber",intent.getStringExtra("phoneNumber"));
+        i.putExtra("phoneNumber", intent.getStringExtra("phoneNumber"));
         context.startService(i);
     }
 }

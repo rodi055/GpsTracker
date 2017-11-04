@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 public class SendLocationTile extends TileService {
     private static final String TAG = SendLocationTile.class.getSimpleName();
-    private String phoneNumber;
+    private String PHONE_NUMBER = "00000";
 
     @Override
     public void onDestroy() {
@@ -35,7 +35,6 @@ public class SendLocationTile extends TileService {
                 , new PermissionManager.PermissionRequestListener() {
                     @Override
                     public void onPermissionGranted() {
-                        phoneNumber = "00000";
                         Tile tile = getQsTile();
                         tile.setState(Tile.STATE_INACTIVE);
                         tile.updateTile();
@@ -48,7 +47,6 @@ public class SendLocationTile extends TileService {
                         tile.updateTile();
                     }
                 });
-
     }
 
     @Override
@@ -71,25 +69,23 @@ public class SendLocationTile extends TileService {
         super.onClick();
         Tile tile = getQsTile();
         if (tile.getState() == Tile.STATE_INACTIVE) {
-            Log.d(TAG, "onClick: tile");
-
-            //scheduleJob(getBaseContext());
+            Log.d(TAG, "onClick: tile activated");
             scheduleAlarm();
             getQsTile().setState(Tile.STATE_ACTIVE);
         } else {
-            Log.d(TAG, "onClick no: tile");
+            Log.d(TAG, "onClick: tile inactive");
             cancelAlarm();
-            //jobScheduler.cancelAll();
             getQsTile().setState(Tile.STATE_INACTIVE);
         }
         tile.updateTile();
     }
 
-    // Setup a recurring alarm every half hour
+    // Setup a recurring alarm every hour
     public void scheduleAlarm() {
         // Construct an intent that will execute the AlarmReceiver
         Intent intent = new Intent(getApplicationContext(), GpsSmsAlarmReceiver.class);
-        intent.putExtra("phoneNumber", phoneNumber);
+        intent.putExtra("phoneNumber", PHONE_NUMBER);
+        Log.d(TAG, "scheduleAlarm: phone number: " + PHONE_NUMBER);
         // Create a PendingIntent to be triggered when the alarm goes off
         final PendingIntent pIntent = PendingIntent.getBroadcast(this, GpsSmsAlarmReceiver.REQUEST_CODE,
                 intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -109,6 +105,4 @@ public class SendLocationTile extends TileService {
         AlarmManager alarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         alarm.cancel(pIntent);
     }
-
-
 }

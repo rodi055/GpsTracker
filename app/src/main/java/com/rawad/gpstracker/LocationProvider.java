@@ -14,6 +14,9 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
+/**
+ * Created by Rawad on 3-Nov-17.
+ */
 public class LocationProvider implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
@@ -25,10 +28,6 @@ public class LocationProvider implements
 
     public static final String TAG = android.location.LocationProvider.class.getSimpleName();
 
-    /*
-     * Define a request code to send to Google Play services
-     * This code is returned in Activity.onActivityResult
-     */
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 
     private LocationCallback mLocationCallback;
@@ -44,8 +43,6 @@ public class LocationProvider implements
                 .build();
 
         mLocationCallback = callback;
-
-        // Create the LocationRequest object
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                 .setInterval(10 * 1000)        // 10 seconds, in milliseconds
@@ -73,7 +70,6 @@ public class LocationProvider implements
     @Override
     public void onConnected(Bundle bundle) {
         Log.i(TAG, "Location services connected.");
-        //@SuppressLint("MissingPermission") Location location = getFusedLocationProviderClient(mContext).getLastLocation().getResult();
         Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (location == null) {
             Log.d(TAG, "null location");
@@ -86,17 +82,10 @@ public class LocationProvider implements
 
     @Override
     public void onConnectionSuspended(int i) {
-
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        /*
-         * Google Play services can resolve some errors it detects.
-         * If the error has a resolution, try sending an Intent to
-         * start a Google Play services activity that can resolve
-         * error.
-         */
         if (connectionResult.hasResolution() && mContext instanceof Activity) {
             try {
                 Activity activity = (Activity) mContext;
@@ -107,14 +96,9 @@ public class LocationProvider implements
              * PendingIntent
              */
             } catch (IntentSender.SendIntentException e) {
-                // Log the error
                 e.printStackTrace();
             }
         } else {
-            /*
-             * If no resolution is available, display a dialog to the
-             * user with the error.
-             */
             Log.i(TAG, "Location services connection failed with code " + connectionResult.getErrorCode());
         }
     }
